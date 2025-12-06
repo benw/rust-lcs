@@ -11,26 +11,29 @@ use std::hash::Hash;
 use std::collections::HashSet;
 
 #[derive(Debug)]
-pub struct LcsTable<'a, T: 'a> {
+pub struct LcsTable<'a, A: 'a, B: 'a> {
     lengths: Vec<Vec<i64>>,
 
-    a: &'a [T],
-    b: &'a [T]
+    a: &'a [A],
+    b: &'a [B],
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum DiffComponent<T> {
-    Insertion(T),
-    Unchanged(T, T),
-    Deletion(T)
+pub enum DiffComponent<A, B> {
+    Insertion(B),
+    Unchanged(A, B),
+    Deletion(A)
 }
 
 /// Finding longest common subsequences ("LCS") between two sequences requires constructing a *n x
 /// m* table (where the two sequences are of lengths *n* and *m*). This is expensive to construct
 /// and there's a lot of stuff you can calculate using it, so `LcsTable` holds onto this data.
-impl<'a, T> LcsTable<'a, T> where T: Eq {
+impl<'a, A, B> LcsTable<'a, A, B>
+where
+    A: PartialEq<B>,
+{
     /// Constructs a LcsTable for matching between two sequences `a` and `b`.
-    pub fn new(a: &'a [T], b: &'a [T]) -> LcsTable<'a, T> {
+    pub fn new(a: &'a [A], b: &'a [B]) -> LcsTable<'a, A, B> {
         let mut lengths = vec![vec![0; b.len() + 1]; a.len() + 1];
 
         for i in 0..a.len() {
@@ -63,11 +66,11 @@ impl<'a, T> LcsTable<'a, T> where T: Eq {
     ///
     /// assert_eq!(vec![(&'a', &'a'), (&'b', &'b'), (&'c', &'c')], lcs);
     /// ```
-    pub fn longest_common_subsequence(&self) -> Vec<(&T, &T)> {
+    pub fn longest_common_subsequence(&self) -> Vec<(&A, &B)> {
         self.find_lcs(self.a.len(), self.b.len())
     }
 
-    fn find_lcs(&self, i: usize, j: usize) -> Vec<(&T, &T)> {
+    fn find_lcs(&self, i: usize, j: usize) -> Vec<(&A, &B)> {
         if i == 0 || j == 0 {
             return vec![];
         }
@@ -104,13 +107,19 @@ impl<'a, T> LcsTable<'a, T> where T: Eq {
     /// assert!(subsequences.contains(&vec![(&'g', &'g'), (&'a', &'a')]));
     /// assert!(subsequences.contains(&vec![(&'g', &'g'), (&'c', &'c')]));
     /// ```
-    pub fn longest_common_subsequences(&self) -> HashSet<Vec<(&T, &T)>>
-            where T: Hash {
+    pub fn longest_common_subsequences(&self) -> HashSet<Vec<(&A, &B)>>
+    where
+        A: Hash + Eq,
+        B: Hash + Eq,
+    {
         self.find_all_lcs(self.a.len(), self.b.len())
     }
 
-    fn find_all_lcs(&self, i: usize, j: usize) -> HashSet<Vec<(&T, &T)>>
-            where T: Hash {
+    fn find_all_lcs(&self, i: usize, j: usize) -> HashSet<Vec<(&A, &B)>>
+    where
+        A: Hash + Eq,
+        B: Hash + Eq,
+    {
         if i == 0 || j == 0 {
             let mut ret = HashSet::new();
             ret.insert(vec![]);
@@ -162,11 +171,11 @@ impl<'a, T> LcsTable<'a, T> where T: Eq {
     ///     DiffComponent::Insertion(&'c')
     /// ]);
     /// ```
-    pub fn diff(&self) -> Vec<DiffComponent<&T>> {
+    pub fn diff(&self) -> Vec<DiffComponent<&A, &B>> {
         self.compute_diff(self.a.len(), self.b.len())
     }
 
-    fn compute_diff(&self, i: usize, j: usize) -> Vec<DiffComponent<&T>> {
+    fn compute_diff(&self, i: usize, j: usize) -> Vec<DiffComponent<&A, &B>> {
         if i == 0 && j == 0 {
             return vec![];
         }
