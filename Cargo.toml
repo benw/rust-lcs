@@ -5,3 +5,4 @@ authors = ["Ulysse Carion <ulysse@ulysse.io>"]
 description = "A library for computing longest common subsequences and diffs"
 license = "MIT"
 homepage = "https://github.com/ucarion/rust-lcs"
+edition = "2015"
