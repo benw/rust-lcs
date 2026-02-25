@@ -11,7 +11,7 @@ use std::hash::Hash;
 use std::collections::HashSet;
 
 #[derive(Debug)]
-pub struct LcsTable<'a, A: 'a, B: 'a> {
+pub struct LcsTable<'a, A: 'a, B: 'a = A> {
     lengths: Vec<Vec<i64>>,
 
     a: &'a [A],
@@ -19,7 +19,7 @@ pub struct LcsTable<'a, A: 'a, B: 'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum DiffComponent<A, B> {
+pub enum DiffComponent<A, B = A> {
     Insertion(B),
     Unchanged(A, B),
     Deletion(A)
